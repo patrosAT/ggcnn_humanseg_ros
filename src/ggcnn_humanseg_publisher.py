@@ -89,7 +89,9 @@ class GGCNN_humanseg:
 
 
     # GGCNN
-    def _ggcnn(self):        
+    def _ggcnn(self): 
+
+        t_start = rospy.get_time()       
 
         # Camera pose
         cam_p = self.last_image_pose.position
@@ -153,6 +155,7 @@ class GGCNN_humanseg:
             # Publish rviz pose
             tfh.publish_pose_as_transform(pred.pose, 'panda_link0', 'best_G', 0.5)
 
+        print('GGCNN successful. Current Hz-rate:\t' + str(1/(rospy.get_time() - t_start)))
 
         # Publish results
         self.pub_ggcnn.publish(pred)
