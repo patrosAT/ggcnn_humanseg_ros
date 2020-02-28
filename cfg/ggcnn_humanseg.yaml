@@ -1,0 +1,25 @@
+ggcnn_humanseg:
+    camera_info:
+        info: /camera/depth/camera_info
+        camera_frame: camera_depth_optical_frame
+        robot_base_frame: panda_link0
+        fov: 65.5
+    camera:
+        image: /camera/color/image_raw
+        depth: /camera/depth/image_meters_aligned
+    subscription:
+        bodyparts: /bodyparts/topic
+        egohands: /egohands/topic
+        darknet: /darknet_ros/bounding_boxes
+    interface:
+        topic: /ggcnn_humanseg
+    ggcnn:
+        crop_size: 300
+        crop_offset: 40
+        out_size: 300
+    robot:
+        dist_ignore: 0.7
+        grip_width: 0.08
+    visualization: 
+        topic: /ggcnn_humanseg/visualization
+        activated: True

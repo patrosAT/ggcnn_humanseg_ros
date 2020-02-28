@@ -1,0 +1,4 @@
+<launch>
+  <rosparam command="load" file="$(find ggcnn_humanseg_ros)/cfg/ggcnn_humanseg.yaml" />
+  <node name="ggcnn_humanseg_publisher" pkg="ggcnn_humanseg_ros" type="ggcnn_humanseg_publisher.py" output="screen" />
+</launch>
