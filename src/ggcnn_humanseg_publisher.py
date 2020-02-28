@@ -48,7 +48,7 @@ class GGCNN_humanseg:
         self.out_size = rospy.get_param('/ggcnn_humanseg/ggcnn/out_size')
 
         self.dist_ignore = rospy.get_param('/ggcnn_humanseg/robot/dist_ignore')
-        self.grip_height = rospy.get_param('/ggcnn_humanseg/robot/c')
+        self.grip_height = rospy.get_param('/ggcnn_humanseg/robot/grip_width')
 
         self.visualization_topic = rospy.get_param('/ggcnn_humanseg/visualization/topic')
         self.visualization_type = rospy.get_param('/ggcnn_humanseg/visualization/activated')
@@ -185,7 +185,6 @@ class GGCNN_humanseg:
 
         # GGCNN
         if not (self.last_image_pose == None):
-
             if self.init_body and self.init_hand and self.init_box:
                 self._ggcnn()
             
@@ -203,11 +202,17 @@ class GGCNN_humanseg:
 
         if (self.init_depth):
 
+            depth_nan = self.depth.copy().astype(np.float32)
+            depth_nan[self.depth == 0] = np.nan
+            depth_nan[self.depth >= self.dist_ignore] = np.nan
+            depth_nan[self.mask_body != 0] = np.nan
+            depth_nan[self.mask_hand != 0] = np.nan
+
             box_list = msg.bounding_boxes
             boxes = []
             for i in range(len(box_list)):
                 if(box_list[i].Class != 'person'):
-                    depth_mean = np.nanmean(self.depth[box_list[i].ymin : box_list[i].ymax, box_list[i].xmin : box_list[i].xmax])
+                    depth_mean = np.nanmean(depth_nan[box_list[i].ymin : box_list[i].ymax, box_list[i].xmin : box_list[i].xmax])
                     if(depth_mean > self.dist_ignore) or np.isnan(depth_mean):
                         continue
                     else:

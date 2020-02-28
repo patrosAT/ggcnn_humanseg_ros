@@ -62,7 +62,7 @@ def predict(depth, mask=None, crop_size=300, out_size=300, crop_y_offset=0, filt
         pred_out = model.predict(depth.reshape((1, 300, 300, 1)))
 
     points_out = pred_out[0].squeeze()
-    points_out[mask == 1] = 0
+    points_out[mask == 255] = 0
 
     # Calculate the angle map.
     cos_out = pred_out[1].squeeze()

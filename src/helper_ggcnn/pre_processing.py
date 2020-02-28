@@ -31,12 +31,12 @@ class Preparations:
     def _prepare_mask(self):
         
         mask = np.zeros(self.depth.shape, dtype=np.uint8)
-        mask[self.mask_body != 0] = 1
-        mask[self.mask_hand != 0] = 1
+        mask[self.mask_body != 0] = 255
+        mask[self.mask_hand != 0] = 255
         mask[self.depth_nan == 1] = 0
         mask[self.depth > self.dist_bg] = 0
 
-        return mask
+        return cv2.dilate(mask, np.ones((5,5),np.uint8), iterations = 2)
 
     # Public function returning the adapted depth image and mask
     def prepare_image_mask(self, depth, depth_nan, mask_body, mask_hand, dist_obj, dist_ignore, grip_height):

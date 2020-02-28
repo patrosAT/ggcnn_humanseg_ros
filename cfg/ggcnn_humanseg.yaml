@@ -18,7 +18,7 @@ ggcnn_humanseg:
         crop_offset: 40
         out_size: 300
     robot:
-        dist_ignore: 0.7
+        dist_ignore: 1
         grip_width: 0.08
     visualization: 
         topic: /ggcnn_humanseg/visualization
