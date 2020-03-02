@@ -22,4 +22,4 @@ ggcnn_humanseg:
         grip_width: 0.08
     visualization: 
         topic: /ggcnn_humanseg/visualization
-        activated: False
+        activated: True
