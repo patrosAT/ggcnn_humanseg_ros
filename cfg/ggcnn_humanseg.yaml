@@ -1,7 +1,7 @@
 ggcnn_humanseg:
     camera_info:
-        info: /camera/depth/camera_info
-        camera_frame: camera_depth_optical_frame
+        info: /camera/color/camera_info
+        camera_frame: camera_color_optical_frame
         robot_base_frame: panda_link0
         fov: 65.5
     camera:

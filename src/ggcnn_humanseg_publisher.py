@@ -35,7 +35,7 @@ class GGCNN_humanseg:
         self.base_frame = rospy.get_param('/ggcnn_humanseg/camera_info/robot_base_frame')
         self.cam_fov = rospy.get_param('/ggcnn_humanseg/camera_info/fov')
 
-        #self.image_topic = rospy.get_param('/ggcnn_humanseg/camera/image')
+        self.image_topic = rospy.get_param('/ggcnn_humanseg/camera/image')
         self.depth_topic = rospy.get_param('/ggcnn_humanseg/camera/depth')
         self.bodyparts_topic = rospy.get_param('/ggcnn_humanseg/subscription/bodyparts')
         self.egohands_topic = rospy.get_param('/ggcnn_humanseg/subscription/egohands')
@@ -59,7 +59,7 @@ class GGCNN_humanseg:
         self.cam_K = np.array(cam_info_msg.K).reshape((3, 3))
 
         # Images & masks
-        #self.image = None
+        self.image = None
         self.depth = None
         self.depth_nan = None
         self.mask_body = None
@@ -78,7 +78,7 @@ class GGCNN_humanseg:
             self.pub_visualization = rospy.Publisher(self.visualization_topic, Image, queue_size=1)
 
         # Subscriber
-        #rospy.Subscriber(self.image_topic, Image, self._callback_image, queue_size=1)
+        rospy.Subscriber(self.image_topic, Image, self._callback_image, queue_size=1)
         rospy.Subscriber(self.depth_topic, Image, self._callback_depth, queue_size=1)
         rospy.Subscriber(self.bodyparts_topic, CompressedImage, self._callback_bodyparts, queue_size=1)
         rospy.Subscriber(self.egohands_topic, CompressedImage, self._callback_egohands, queue_size=1)
@@ -136,21 +136,34 @@ class GGCNN_humanseg:
         pred.pose.position.x = pos[best_g, 0]
         pred.pose.position.y = pos[best_g, 1]
         pred.pose.position.z = pos[best_g, 2]
-        #pred.pose.orientation = tfh.list_to_quaternion(tft.quaternion_from_euler(np.pi/2, ((angle[best_g_unr]%np.pi) + np.pi/2), 0))
-        pred.pose.orientation = tfh.list_to_quaternion(tft.quaternion_from_euler(np.pi, 0, ((angle[best_g_unr]%np.pi) - np.pi/2)))
+
+        gq = tft.quaternion_from_euler(0, 0, angle[best_g_unr] - np.pi/2)
+        iq = tfh.quaternion_to_list(self.last_image_pose.orientation)
+        q = tft.quaternion_multiply(iq, gq)
+        pred.pose.orientation = tfh.list_to_quaternion(q)
+
         pred.width = width_m[best_g_unr]
         pred.quality = points[best_g_unr]
         
         # Visualization
         if self.visualization_type:
-            # Publish heat map
-            show = gridshow('Display',
-                            [depth_ggcnn, points],
-                            [(0.30, 0.55), None, (-np.pi/2, np.pi/2)],
-                            [cv2.COLORMAP_BONE, cv2.COLORMAP_JET, cv2.COLORMAP_BONE],
-                            3,
-                            False)
-            self.pub_visualization.publish(self.bridge.cv2_to_imgmsg(show))
+
+            # Create heat map
+            heatmap = points.copy()*255
+            heatmap = heatmap.astype(np.uint8)
+            heatmap = cv2.applyColorMap(heatmap, colormap=cv2.COLORMAP_JET)
+
+            # Fit heatmap into RGB frame
+            imgw, imgh, _ = self.image.shape
+            x_min = (imgw - self.out_size) / 2 - self.crop_offset
+            y_min = (imgh - self.out_size) / 2
+
+            heat_rgb = self.image.copy()
+            heat_rgb = cv2.cvtColor(heat_rgb, cv2.COLOR_BGR2RGB)
+
+            heat_rgb[x_min:(x_min+self.out_size), y_min:(y_min+self.out_size), :] = heatmap
+
+            self.pub_visualization.publish(self.bridge.cv2_to_imgmsg(heat_rgb))
 
             # Publish rviz pose
             tfh.publish_pose_as_transform(pred.pose, 'panda_link0', 'best_G', 0.5)
@@ -162,10 +175,11 @@ class GGCNN_humanseg:
 
 
     # Callback functions
-    '''
+    
     def _callback_image(self, msg):
         self.image = self.bridge.imgmsg_to_cv2(msg)
-
+        
+        '''
         # Publish adapted rgb image -> input for yolo
         if self.init_depth:
 
@@ -176,7 +190,7 @@ class GGCNN_humanseg:
             image_prep[:,:,2][map_nan == 255] = 242
 
             self.pub_darknet.publish(self.bridge.cv2_to_imgmsg(image_prep, encoding='rgb8'))
-    '''
+        '''
 
     def _callback_depth(self, msg):
         self.depth = self.bridge.imgmsg_to_cv2(msg)
