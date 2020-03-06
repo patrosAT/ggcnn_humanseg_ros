@@ -78,7 +78,7 @@ class GGCNN_humanseg:
             self.pub_visualization = rospy.Publisher(self.visualization_topic, Image, queue_size=1)
 
         # Subscriber
-        rospy.Subscriber(self.image_topic, Image, self._callback_image, queue_size=1)
+        rospy.Subscriber(self.image_topic, CompressedImage, self._callback_image, queue_size=1)
         rospy.Subscriber(self.depth_topic, Image, self._callback_depth, queue_size=1)
         rospy.Subscriber(self.bodyparts_topic, CompressedImage, self._callback_bodyparts, queue_size=1)
         rospy.Subscriber(self.egohands_topic, CompressedImage, self._callback_egohands, queue_size=1)
@@ -137,7 +137,7 @@ class GGCNN_humanseg:
         pred.pose.position.y = pos[best_g, 1]
         pred.pose.position.z = pos[best_g, 2]
 
-        gq = tft.quaternion_from_euler(0, 0, angle[best_g_unr] - np.pi/2)
+        gq = tft.quaternion_from_euler(0, 0, angle[best_g_unr] - np.pi*3/4)
         iq = tfh.quaternion_to_list(self.last_image_pose.orientation)
         q = tft.quaternion_multiply(iq, gq)
         pred.pose.orientation = tfh.list_to_quaternion(q)
@@ -177,7 +177,7 @@ class GGCNN_humanseg:
     # Callback functions
     
     def _callback_image(self, msg):
-        self.image = self.bridge.imgmsg_to_cv2(msg)
+        self.image = self.bridge.compressed_imgmsg_to_cv2(msg)
         
         '''
         # Publish adapted rgb image -> input for yolo
@@ -204,12 +204,10 @@ class GGCNN_humanseg:
         if not (self.last_image_pose == None):
             if self.init_body and self.init_hand and self.init_box:
                 self._ggcnn()
-            
 
     def _callback_bodyparts(self, msg):
         self.mask_body = self.bridge.compressed_imgmsg_to_cv2(msg)
-        self.init_body = True
-        
+        self.init_body = True        
 
     def _callback_egohands(self, msg):
         self.mask_hand = self.bridge.compressed_imgmsg_to_cv2(msg)
