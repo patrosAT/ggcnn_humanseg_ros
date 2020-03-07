@@ -111,5 +111,5 @@ The ROS node is powered by the ggcnn of [dougsm](https://github.com/dougsm). For
 
 ## License
 
-* **Academic:** The project is licensed under the 3-clause BSD License.
+* **Academic:** The project is licensed under the BSD 4-Clause License.
 * **Commercial:** Please contact the author.
