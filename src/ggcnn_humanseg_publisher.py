@@ -201,6 +201,8 @@ class GGCNN_humanseg:
         self.last_image_pose = tfh.current_robot_pose(self.base_frame, self.cam_frame)
 
         # GGCNN
+        print(self.last_image_pose)
+        print(self.init_body, self.init_hand, self.init_box)
         if not (self.last_image_pose == None):
             if self.init_body and self.init_hand and self.init_box:
                 self._ggcnn()
