@@ -5,7 +5,7 @@ ggcnn_humanseg:
         robot_base_frame: panda_link0
         fov: 65.5
     camera:
-        image: /camera/color/image_raw
+        image: /camera/color/image_raw/compressed
         depth: /camera/depth/image_meters_aligned
     subscription:
         bodyparts: /bodyparts/topic
@@ -22,4 +22,4 @@ ggcnn_humanseg:
         grip_width: 0.08
     visualization: 
         topic: /ggcnn_humanseg/visualization
-        activated: True
+        activated: False

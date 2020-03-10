@@ -67,7 +67,7 @@ The initial setup can be changed by adapting the [ggcnn_humanseg.yaml](cfg/ggcnn
 * **fov:** The camera' field of view.
 
 #### Camera ####
-* **image:** Rostopic the node is subcribing to (rgb image).
+* **image:** Rostopic the node is subcribing to (rgb image). *(In the current version the related functionalities are commented out to minimize computations)*
 * **depth:** Rostopic the node is subcribing to (depth image).
 
 #### Subscription ####
@@ -111,5 +111,5 @@ The ROS node is powered by the ggcnn of [dougsm](https://github.com/dougsm). For
 
 ## License
 
-* **Academic:** The project is licensed under the 3-clause BSD License.
+* **Academic:** The project is licensed under the BSD 4-Clause License.
 * **Commercial:** Please contact the author.
