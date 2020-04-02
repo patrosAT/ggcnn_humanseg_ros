@@ -1,6 +1,6 @@
 # GGCNN ROS package with human body parts filtering #
 
-This is an extended ROS implementation of the [ggcnn network](https://github.com/dougsm/ggcnn). The node outputs the the best picking location based on an object's depth image and the input of the three packes [Bodyparts](https://github.com/patrosAT/bodyparts_ros), [Egohands](https://github.com/patrosAT/egohands_ros) and [Yolov3](https://github.com/leggedrobotics/darknet_ros). Extensive pre- and post-processing prevents the picking of human body parts.
+This is an extended ROS implementation of the [ggcnn network](https://github.com/dougsm/ggcnn). The node outputs the the best picking location based on an object's depth image and the input of the three packages [Bodyparts](https://github.com/patrosAT/bodyparts_ros), [Egohands](https://github.com/patrosAT/egohands_ros) and [Yolov3](https://github.com/leggedrobotics/darknet_ros). Extensive pre- and post-processing prevents the picking of human body parts.
 
 This node is part of a larger project with the objective to enable object-independent human-to-robot handovers using robotic vision. The code for this project can be found [here](https://github.com/patrosAT/human_robot_handover_ros).
 
@@ -23,8 +23,7 @@ This heat map shows the success probability for each pixel (0%: dark blue, 100%:
 
 ### Dependencies ###
 
-The models have been tested with Python 2.7.
-The transformations are specific to the [Franka Emika robot arm](https://frankaemika.github.io/).
+The models have been tested with Python 2.7. The camera-to-base-frame transformations are specific to the [Franka Emika](https://frankaemika.github.io/) robot arm. If a different robot is used, an adaption of the file [tf_helpers.py](/src/helper_ggcnn/tf_helpers.py) is required.  
 
 ### Hardware ###
 
@@ -94,10 +93,10 @@ The initial setup can be changed by adapting the [ggcnn_humanseg.yaml](cfg/ggcnn
 * **dist_ignore:** Field of range in meter [m]. Objects behind this distance are inored
 * **gripper_width:** Gripper height in meter [m].
 
-**Visualization:** The visualization node published the heat map showing the success probability for each pixel (0%: dark blue, 100%: dark red). Please be aware that turing on the visualization increases computing time and network utilization substantially (approx. factor x20).
+**Visualization:** The visualization node publishes the heat map showing the success probability for each pixel (0%: dark blue, 100%: dark red). Please be aware that turing on the visualization increases computing time and network utilization substantially (approx. factor x20).
 
-* **topic:** Topic the node is publishing to.
-* **activated:** Turn on/off visualization: *use keywords "on" or "off"*.
+* **topic:** Rostopic the node is publishing to (visualization).
+* **activated:** Turn on/off visualization: *use only keywords **"True"** or **"False"***
 
 
 ## Acknowledgments ##
