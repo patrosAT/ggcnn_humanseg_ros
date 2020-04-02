@@ -1,115 +1,109 @@
-# GGCNN ROS package with human parts filtering #
+# GGCNN ROS package with human body parts filtering #
 
-This is a ROS wrapper of the [ggcnn network](https://github.com/dougsm/ggcnn) that segments human body parts and sets their picking probability to 0. Based on inputs of the 1) depth camera and the ros packages 2) bodyparts_ros, 3) egohands_ros, and 4) darknet_ros, this ros package published a grasp map and the best picking point (location, gripper orientation, gripper width & quality). The grasp map is adapted to make sure the robot does not pick a human body part.
+This is an extended ROS implementation of the [ggcnn network](https://github.com/dougsm/ggcnn). The node outputs the the best picking location based on an object's depth image and the input of the three packes [Bodyparts](https://github.com/patrosAT/bodyparts_ros), [Egohands](https://github.com/patrosAT/egohands_ros) and [Yolov3](https://github.com/leggedrobotics/darknet_ros). Extensive pre- and post-processing prevents the picking of human body parts.
 
-#### Input ####
+This node is part of a larger project with the objective to enable object-independent human-to-robot handovers using robotic vision. The code for this project can be found [here](https://github.com/patrosAT/human_robot_handover_ros).
 
+**Input**
 * **Depth image:** [sensor_msgs/Image](http://docs.ros.org/melodic/api/sensor_msgs/html/msg/Image.html)
 * **Bodyparts:** [sensor_msgs/CompressedImage](http://docs.ros.org/melodic/api/sensor_msgs/html/msg/CompressedImage.html)
 * **Egohands:** [sensor_msgs/CompressedImage](http://docs.ros.org/melodic/api/sensor_msgs/html/msg/CompressedImage.html)
 * **Yolo:** [sensor_msgs/Image](http://docs.ros.org/melodic/api/sensor_msgs/html/msg/Image.html)
 
-#### Output ####
+**Output**
+* **Best picking point:** [GraspPrediction](/msg/GraspPrediction.msg), transformed into the robot's base frame.
 
-* **Best picking point:** [GraspPrediction](/msg/GraspPrediction.msg)
-* **Heat Map:** [sensor_msgs/Image](http://docs.ros.org/melodic/api/sensor_msgs/html/msg/Image.html)
+#### Example of a banana from a lateral perspective: ####
+<div style="text-align:center"><img src="./imgs/ggcnn.png" width="500"/></div>
+
+This heat map shows the success probability for each pixel (0%: dark blue, 100%: dark red). Pixels belonging to the human are set to 0%, pixels close to the hand are degraded.
+
 
 ## Getting Started ##
 
 ### Dependencies ###
 
-The models have been tested with Python 2.7 and 3.6.
-The transformations are specific to the [Franka Emika robot arm](https://frankaemika.github.io/)
+The models have been tested with Python 2.7.
+The transformations are specific to the [Franka Emika robot arm](https://frankaemika.github.io/).
 
-#### Hardware ####
+### Hardware ###
 
-* Depth Camera
-* GPU > 4000MiB
+* Depth camera *(for this project an [realsense D435](https://www.intelrealsense.com/depth-camera-d435/) was used)*
+* GPU >= 4 GB
  
-#### Python3 / pip3 ####
-```
-numpy
-scipy
-cv2
-tensorflow
-```
-#### Ros ####
-```
-rospy
-sensor_msgs
-geometry_msgs
-tf2_ros
-tf2_geometry_msgs
-cv_bridge
-```
-#### Ros 3rd party packages ###
+### Software ###
+
+**ATTENTION: This package requires the [ROS](https://www.ros.org/) operating system!**
+
+* Python 2.x: see [requirements.txt](requirements.txt)
+
+### Ros 3rd party packages ###
+
 * [Bodyparts_ros](https://github.com/patrosAT/bodyparts_ros.git)
 * [Egohands_ros](https://github.com/patrosAT/egohands_ros.git)
 * [Darknet_ros](https://github.com/leggedrobotics/darknet_ros)
 
 **Note:** To enable real-time processing it might be necessary to distribute these packages across several computers. We recommend using [sensor_msgs/CompressedImage](http://docs.ros.org/melodic/api/sensor_msgs/html/msg/CompressedImage.html)s to keep the network usage on a reasonable level.
 
-### Bilding ###
-
-To maximize performance, use the 'release' build mode:
-```
-catkin_make -DCMAKE_BUILD_TYPE=Release
-```
-
-### Configuration ###
-
-The initial setup can be changed by adapting the [ggcnn_humanseg.yaml](cfg/ggcnn_humanseg.yaml) file:
-
-#### Camera info ####
-* **info:** Camera topic on which the camera info is published.
-* **camera_frame:** The camera frame.
-* **robot_base_frame:** The robot base frame.
-* **fov:** The camera' field of view.
-
-#### Camera ####
-* **image:** Rostopic the node is subcribing to (rgb image). *(In the current version the related functionalities are commented out to minimize computations)*
-* **depth:** Rostopic the node is subcribing to (depth image).
-
-#### Subscription ####
-* **bodyparts:** Rostopic the node is subcribing to (bodyparts).
-* **egohands:** Rostopic the node is subcribing to (egohands).
-* **darknet:** Rostopic the node is subcribing to (yolo).
-
-#### Interface ####
-* **topic:** Rostopic the publisher node is publishing to *(please do not change)*.
-
-#### Ggcnn ####
-* **crop_size:** GGCNN specific parameter *(please do not change)*.
-* **crop_offset:** GGCNN specific parameter *(please do not change)*.
-* **out_size:** GGCNN specific parameter *(please do not change)*.
-
-#### Robot ####
-* **dist_ignore:** Field of range in meter. Objects behind this distance are inored
-* **gripper_width:** Height of the gripper in meter (= distance between the camera and the gripper).
-
-#### Visualization ####
-
-The visualization mode published the original image with the background blacked out. Please be aware that turing on the visualization increases computing time and network utilization substantially.
-
-* **topic:** Topic the node is publishing to.
-* **activated:** Turn on/off visualization: *use keywords "on" or "off"*.
-
-### Launch
+### Launch ###
 
 Before launching the package, make sure that the camera and the 3rd party ros packages are up and running. 
 
 The ros package contains a launch file:
-* **Publisher:** The [publisher](launch/ggcnn_humanseg_publisher.launch) launch file starts a ros node that published a new mask every time a new depth image is published.
+* **[Publisher](launch/ggcnn_humanseg_publisher.launch):** Publishes a mask every time a new image is published by the camera.
 
-### Visualization
+**Input**
+* **Depth image:** [sensor_msgs/Image](http://docs.ros.org/melodic/api/sensor_msgs/html/msg/Image.html)
+* **Bodyparts:** [sensor_msgs/CompressedImage](http://docs.ros.org/melodic/api/sensor_msgs/html/msg/CompressedImage.html)
+* **Egohands:** [sensor_msgs/CompressedImage](http://docs.ros.org/melodic/api/sensor_msgs/html/msg/CompressedImage.html)
+* **Yolo:** [sensor_msgs/Image](http://docs.ros.org/melodic/api/sensor_msgs/html/msg/Image.html)
 
-If the visualization is set 'True', a heat map [sensor_msgs/Image](http://docs.ros.org/melodic/api/sensor_msgs/html/msg/Image.html) is published to the corresponding topic. 
+**Output**
+* **Best picking point:** [GraspPrediction](/msg/GraspPrediction.msg), transformed into the robot's base frame.
 
-## Acknowledgments
 
-The ROS node is powered by the ggcnn of [dougsm](https://github.com/dougsm). For more information, please refer to the original [paper](https://arxiv.org/abs/1804.05172) or the following [github repository](https://github.com/dougsm/ggcnn)
+## Configuration ##
 
-## License
+The initial setup can be changed by adapting the [ggcnn_humanseg.yaml](cfg/ggcnn_humanseg.yaml) file:
 
-* **Academic:** The project is licensed under the BSD 4-Clause License.
-* **Commercial:** Please contact the author.
+**Camera info:** The following settings adjusted for using a [Franka Emika](https://frankaemika.github.io/) robot arm with a end-effector mounted [realsense D435](https://www.intelrealsense.com/depth-camera-d435/).
+
+* **info:** Rostopic the publisher is subscribing to (camera info). 
+* **camera_frame:** The camera frame.
+* **robot_base_frame:** The robot base frame.
+* **fov:** The camera's field of view.
+
+**Camera:**
+* **image:** Rostopic the publisher is subscribing to (rgb image).
+* **depth:** Rostopic the publisher is subscribing to (depth image).
+
+**Subscription:**
+* **bodyparts:** Rostopic the node is subcribing to (bodyparts).
+* **egohands:** Rostopic the node is subcribing to (egohands).
+* **darknet:** Rostopic the node is subcribing to (yolo v3).
+
+**Interface:**
+* **topic:** Rostopic the publisher node is publishing to.
+
+**Ggcnn:** GGCNN specific parameter. See [paper](https://arxiv.org/abs/1804.05172) for more inforamtion.
+* **crop_size:** *Change with caution!*.
+* **crop_offset:** *Change with caution!*.
+* **out_size:** *Change with caution!*.
+
+**Robot:**
+* **dist_ignore:** Field of range in meter [m]. Objects behind this distance are inored
+* **gripper_width:** Gripper height in meter [m].
+
+**Visualization:** The visualization node published the heat map showing the success probability for each pixel (0%: dark blue, 100%: dark red). Please be aware that turing on the visualization increases computing time and network utilization substantially (approx. factor x20).
+
+* **topic:** Topic the node is publishing to.
+* **activated:** Turn on/off visualization: *use keywords "on" or "off"*.
+
+
+## Acknowledgments ##
+
+The ROS node is powered by the ggcnn of [dougsm](https://github.com/dougsm). For more information, please refer to the following [paper](https://arxiv.org/abs/1804.05172) or [github repository](https://github.com/dougsm/ggcnn).
+
+## License ##
+
+The project is licensed under the BSD 4-Clause License.
